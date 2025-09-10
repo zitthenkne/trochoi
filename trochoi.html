@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Quản Trò</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation; /* Vô hiệu hóa double-tap to zoom */
+        }
+        .btn {
+            -webkit-tap-highlight-color: transparent; /* Xóa highlight khi chạm trên mobile */
+        }
+        .timer-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .7;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-2 sm:p-4">
+
+    <div class="w-full max-w-md mx-auto bg-gray-800 rounded-2xl shadow-lg p-4 space-y-4">
+
+        <!-- Bảng Điểm -->
+        <div class="bg-gray-700 rounded-lg p-3">
+            <div class="flex justify-around items-center text-center">
+                <div class="w-1/2">
+                    <h2 class="text-xl sm:text-2xl font-bold text-orange-400">ĐỘI A</h2>
+                    <p id="score-a" class="text-4xl sm:text-5xl font-black my-2">0</p>
+                    <div class="flex justify-center items-center space-x-2">
+                        <button onclick="adjustScore('A', -1)" class="btn bg-gray-600 hover:bg-red-500 rounded-full h-8 w-8 text-xl font-bold transition-colors">-</button>
+                        <button onclick="adjustScore('A', 1)" class="btn bg-gray-600 hover:bg-green-500 rounded-full h-8 w-8 text-xl font-bold transition-colors">+</button>
+                    </div>
+                </div>
+                <div class="w-px h-20 bg-gray-600"></div>
+                <div class="w-1/2">
+                    <h2 class="text-xl sm:text-2xl font-bold text-purple-400">ĐỘI B</h2>
+                    <p id="score-b" class="text-4xl sm:text-5xl font-black my-2">0</p>
+                    <div class="flex justify-center items-center space-x-2">
+                        <button onclick="adjustScore('B', -1)" class="btn bg-gray-600 hover:bg-red-500 rounded-full h-8 w-8 text-xl font-bold transition-colors">-</button>
+                        <button onclick="adjustScore('B', 1)" class="btn bg-gray-600 hover:bg-green-500 rounded-full h-8 w-8 text-xl font-bold transition-colors">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khu vực câu đố và hẹn giờ -->
+        <div class="text-center space-y-3">
+            <div id="question-display" class="bg-gray-900 rounded-lg p-4 h-48 flex items-center justify-center text-center">
+                <p class="text-gray-400">Nhấn "Câu Hỏi Mới" để bắt đầu!</p>
+            </div>
+            <div id="timer-display" class="text-7xl font-extrabold tracking-tighter text-gray-400 py-2">
+                00:30
+            </div>
+        </div>
+
+        <!-- Khu vực điều khiển -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="new-question-btn" class="btn col-span-2 bg-green-600 hover:bg-green-700 active:scale-95 transition-transform text-white font-bold py-4 rounded-lg text-lg">
+                CÂU HỎI NGẪU NHIÊN MỚI
+            </button>
+            <button id="start-stop-btn" class="btn bg-blue-600 hover:bg-blue-700 active:scale-95 transition-transform text-white font-bold py-4 rounded-lg text-lg">
+                BẮT ĐẦU 30s
+            </button>
+             <button id="skip-btn" class="btn bg-gray-600 hover:bg-gray-700 active:scale-95 transition-transform text-white font-bold py-4 rounded-lg text-lg">
+                BỎ QUA / SAI
+            </button>
+            <button id="team-a-correct-btn" class="btn bg-orange-500 hover:bg-orange-600 active:scale-95 transition-transform text-white font-bold py-4 rounded-lg text-lg">
+                ĐỘI A ĐÚNG
+            </button>
+            <button id="team-b-correct-btn" class="btn bg-purple-500 hover:bg-purple-600 active:scale-95 transition-transform text-white font-bold py-4 rounded-lg text-lg">
+                ĐỘI B ĐÚNG
+            </button>
+        </div>
+
+        <!-- Thanh trạng thái và Reset -->
+        <div class="flex justify-between items-center pt-2 text-sm text-gray-500">
+            <p id="question-counter">Còn lại: 29/29 câu</p>
+            <button id="reset-btn" class="btn hover:text-red-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 4l1.5 1.5A9 9 0 0120.5 15M20 20l-1.5-1.5A9 9 0 003.5 9" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+<script>
+    const allQuestions = [
+        // Nhóm Trung Thu
+        { answer: "Đèn ông sao", question: "Năm cánh giấy đỏ, có cán cầm tay, cùng bé rước trăng đêm rằm." },
+        { answer: "Đèn lồng tròn", question: "Bụng tròn giấy mỏng, thắp nến bên trong, soi sáng cho bé vui chơi đêm rằm." },
+        { answer: "Bánh Trung Thu", question: "Bánh nướng hình tròn, nhân ngọt trứng muối, chỉ rằm tháng Tám mới được ăn thôi." },
+        { answer: "Ông địa", question: "Bụng phệ, đầu trọc, tay cầm quạt mo, luôn cười toe toét đi trước đoàn lân." },
+        { answer: "Đầu lân", question: "Đầu sư tử sặc sỡ, có râu có sừng, múa tưng bừng theo tiếng trống đêm trăng." },
+        { answer: "Cái trống", question: "Thân gỗ, mặt da, đánh lên kêu \"tùng tùng\", cho lân nhảy múa thật hăng say." },
+        // Nhóm Cổ Tích
+        { answer: "Chú Cuội", question: "Chăn trâu nói dối, trốn lên cung trăng, ngồi dưới gốc cây đa nhìn xuống." },
+        { answer: "Chị Hằng", question: "Nàng tiên xinh đẹp nhất, ở trong cung trăng, bạn thân của Thỏ Ngọc và chú Cuội." },
+        { answer: "Thỏ Ngọc", question: "Thỏ trắng ở cung trăng, luôn ở bên chị Hằng, chăm chỉ giã thuốc trường sinh." },
+        { answer: "Cây đa", question: "Cây cổ thụ to lớn, có Cuội ngồi dưới gốc, bay theo Cuội lên cung trăng." },
+        { answer: "Ngôi sao", question: "Lấp lánh trên trời đêm, nhỏ xíu mà sáng, bạn thân của chị Hằng và mặt trăng." },
+        { answer: "Mặt trăng", question: "Khi tròn khi khuyết, tỏa sáng dịu hiền, là nhà của chị Hằng, chú Cuội." },
+        { answer: "Đám mây", question: "Bông trắng lững lờ trôi, bay khắp bầu trời, thích che mặt trăng để trêu bé." },
+        { answer: "Củ cà rốt", question: "Củ dài màu cam, mọc dưới lòng đất, là món ăn mà bạn Thỏ Ngọc thích nhất." },
+        // Nhóm Gây Nhiễu
+        { answer: "Cái kéo", question: "Có hai lưỡi sắc, hay kẹp vào nhau, dùng để cắt giấy, cắt vải thật đều." },
+        { answer: "Quyển sách", question: "Có nhiều trang giấy, đầy chữ và hình, im lặng nhưng kể bao nhiêu chuyện hay." },
+        { answer: "Cây bút chì", question: "Ruột đen, áo gỗ, đầu có cục tẩy, càng viết ra chữ thì càng ngắn lại." },
+        { answer: "Cái ly", question: "Có miệng mà không nói, có lòng mà không yêu, chuyên dùng để uống nước mỗi ngày." },
+        { answer: "Quả bóng đá", question: "Thân tròn, da căng, chỉ thích lăn trên cỏ, bị người ta sút mà vẫn vui." },
+        { answer: "Ngôi nhà", question: "Có mái, có cửa, che mưa che nắng, là nơi cả gia đình sum vầy." },
+        { answer: "Chiếc ô", question: "Xòe ra như nấm, che nắng che mưa, giúp bạn khô ráo khi đi ngoài đường." },
+        { answer: "Đồng hồ", question: "Có kim mà không may vá, có mặt mà không buồn vui, luôn miệng kêu \"tích tắc\"." },
+        { answer: "Bông hoa", question: "Cánh mỏng, nhụy vàng, tỏa hương thơm ngát, làm đẹp cho sân vườn và công viên." },
+        { answer: "Cái ghế", question: "Có bốn chân mà chẳng biết đi, có mặt phẳng lì để người ta ngồi lên." },
+        { answer: "Điện thoại", question: "Màn hình chữ nhật, giúp mọi người \"alo\", xem phim, chơi game, lướt web cả ngày." },
+        { answer: "Kính mắt", question: "Có hai tròng thủy tinh, gác lên vành tai, giúp người mắt kém nhìn rõ hơn." },
+        { answer: "Chùm chìa khóa", question: "Anh em sống chung một nhà, răng lởm chởm, chuyên mở các loại ổ khóa cửa." },
+        { answer: "Quả táo", question: "Vỏ đỏ hoặc xanh, ăn vào giòn ngọt, là tên một hãng điện thoại nổi tiếng." },
+        { answer: "Rương kho báu", question: "Thùng gỗ có khóa, chứa đầy vàng bạc, cướp biển rất thích giấu ngoài đảo hoang." }
+    ];
+
+    // Lấy các element từ DOM
+    const scoreADisplay = document.getElementById('score-a');
+    const scoreBDisplay = document.getElementById('score-b');
+    const questionDisplay = document.getElementById('question-display');
+    const timerDisplay = document.getElementById('timer-display');
+    const newQuestionBtn = document.getElementById('new-question-btn');
+    const startStopBtn = document.getElementById('start-stop-btn');
+    const skipBtn = document.getElementById('skip-btn');
+    const teamACorrectBtn = document.getElementById('team-a-correct-btn');
+    const teamBCorrectBtn = document.getElementById('team-b-correct-btn');
+    const questionCounter = document.getElementById('question-counter');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // Biến trạng thái của game
+    let scoreA = 0;
+    let scoreB = 0;
+    let availableQuestions = [];
+    let timerInterval;
+    let timeLeft = 30;
+    let isTimerRunning = false;
+
+    // --- CÁC HÀM XỬ LÝ GAME ---
+
+    function initializeGame() {
+        scoreA = 0;
+        scoreB = 0;
+        availableQuestions = [...allQuestions];
+        stopTimer();
+        timeLeft = 30;
+        updateScoreboard();
+        updateQuestionCounter();
+        timerDisplay.textContent = "00:30";
+        timerDisplay.classList.remove('text-red-500', 'timer-pulse');
+        questionDisplay.innerHTML = `<p class="text-gray-400">Nhấn "Câu Hỏi Mới" để bắt đầu!</p>`;
+        enableControlButtons(false);
+    }
+
+    function updateScoreboard() {
+        scoreADisplay.textContent = scoreA;
+        scoreBDisplay.textContent = scoreB;
+    }
+
+    function adjustScore(team, amount) {
+        if (team === 'A') {
+            scoreA = Math.max(0, scoreA + amount);
+        } else {
+            scoreB = Math.max(0, scoreB + amount);
+        }
+        updateScoreboard();
+    }
+
+    function updateQuestionCounter() {
+        const remaining = availableQuestions.length;
+        const total = allQuestions.length;
+        questionCounter.textContent = `Còn lại: ${remaining}/${total} câu`;
+    }
+
+    function getNewQuestion() {
+        stopTimer();
+        timeLeft = 30;
+        timerDisplay.textContent = "00:30";
+        timerDisplay.classList.remove('text-red-500', 'timer-pulse');
+
+        if (availableQuestions.length === 0) {
+            questionDisplay.innerHTML = `<p class="text-2xl font-bold text-green-400">HẾT CÂU HỎI!<br>TRÒ CHƠI KẾT THÚC.</p>`;
+            enableControlButtons(false);
+            newQuestionBtn.disabled = true;
+            newQuestionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+        const question = availableQuestions.splice(randomIndex, 1)[0];
+        
+        questionDisplay.innerHTML = `
+            <div class="flex flex-col h-full justify-center">
+                <p class="text-lg sm:text-xl">${question.question}</p>
+                <p class="text-sm text-yellow-400 font-semibold mt-2">(Đáp án: ${question.answer})</p>
+            </div>
+        `;
+        
+        updateQuestionCounter();
+        enableControlButtons(true);
+    }
+
+    function startTimer() {
+        if (isTimerRunning) return;
+        isTimerRunning = true;
+        startStopBtn.textContent = 'DỪNG';
+        startStopBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        startStopBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const seconds = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `00:${seconds}`;
+
+            if (timeLeft <= 10 && !timerDisplay.classList.contains('text-red-500')) {
+                timerDisplay.classList.add('text-red-500', 'timer-pulse');
+            }
+
+            if (timeLeft <= 0) {
+                stopTimer();
+                timerDisplay.textContent = "HẾT GIỜ!";
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        startStopBtn.textContent = 'BẮT ĐẦU 30s';
+        startStopBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+        startStopBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    }
+    
+    function awardPoint(team) {
+        adjustScore(team, 1);
+        stopTimer();
+        enableControlButtons(false); // Vô hiệu hóa nút sau khi trả lời đúng để chờ câu mới
+    }
+    
+    function skipQuestion() {
+        stopTimer();
+        enableControlButtons(false); // Vô hiệu hóa nút để chờ câu mới
+        questionDisplay.innerHTML = `<p class="text-gray-500">Câu hỏi đã được bỏ qua.</p>`;
+    }
+
+    function enableControlButtons(enabled) {
+        const buttons = [startStopBtn, skipBtn, teamACorrectBtn, teamBCorrectBtn];
+        buttons.forEach(btn => {
+            btn.disabled = !enabled;
+            if(enabled) {
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+
+    // --- GÁN SỰ KIỆN CHO CÁC NÚT ---
+    
+    document.addEventListener('DOMContentLoaded', initializeGame);
+
+    newQuestionBtn.addEventListener('click', getNewQuestion);
+
+    startStopBtn.addEventListener('click', () => {
+        if (isTimerRunning) {
+            stopTimer();
+        } else {
+            startTimer();
+        }
+    });
+
+    teamACorrectBtn.addEventListener('click', () => awardPoint('A'));
+    teamBCorrectBtn.addEventListener('click', () => awardPoint('B'));
+    
+    skipBtn.addEventListener('click', skipQuestion);
+
+    resetBtn.addEventListener('click', () => {
+        // Sử dụng một hộp thoại xác nhận đơn giản
+        if (confirm('Bạn có chắc chắn muốn chơi lại từ đầu không? Toàn bộ điểm số sẽ bị xóa.')) {
+            initializeGame();
+            newQuestionBtn.disabled = false;
+            newQuestionBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+
+</script>
+</body>
+</html>
